@@ -5,7 +5,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { Lock, AlertTriangle, TrendingUp, TrendingDown, DollarSign, Wallet, ShieldCheck } from 'lucide-react';
 
 export const CloseMonthModal = ({ isOpen, onClose }) => {
-  const { sales, customers, closeMonth, showNotification } = useData();
+  const { sales, customers, products, closeMonth, showNotification } = useData();
   const [submitting, setSubmitting] = useState(false);
 
   // Compute current period YYYY-MM
@@ -23,6 +23,21 @@ export const CloseMonthModal = ({ isOpen, onClose }) => {
 
   const totalSalesRevenue = currentSales.reduce((acc, s) => acc + (s.totalPrice || 0), 0);
   const totalGrossProfit = currentSales.reduce((acc, s) => acc + (s.profit || 0), 0);
+
+  // Enriched snapshot fields
+  const totalSalesCount = currentSales.length;
+  const totalCashReceived = currentSales
+    .filter(s => s.paymentStatus === 'cash')
+    .reduce((acc, s) => acc + (s.totalPrice || 0), 0);
+  const totalLoanSales = currentSales
+    .filter(s => s.paymentStatus === 'loan')
+    .reduce((acc, s) => acc + (s.totalPrice || 0), 0);
+  const inventoryValue = products.reduce(
+    (acc, p) => acc + ((p.costPrice || 0) * (p.stockQuantity || 0)),
+    0
+  );
+  const totalInventoryUnits = products.reduce((acc, p) => acc + (p.stockQuantity || 0), 0);
+  const debtorCount = customers.filter(c => (c.totalDebt || 0) > 0).length;
   
   // Outstanding debts carryover
   const carryoverCustomerDebt = customers.reduce((acc, c) => acc + (c.totalDebt || 0), 0);
@@ -45,7 +60,14 @@ export const CloseMonthModal = ({ isOpen, onClose }) => {
         totalExpenses: totalOperationalExpenses,
         netProfit: netProfit,
         carryoverCustomerDebt: carryoverCustomerDebt,
-        carryoverSupplierDebt: 0
+        carryoverSupplierDebt: 0,
+        // Enriched fields
+        totalSalesCount,
+        totalCashReceived,
+        totalLoanSales,
+        inventoryValue,
+        totalInventoryUnits,
+        debtorCount
       });
       onClose();
     } catch (err) {

@@ -7,6 +7,7 @@ import {
   deleteDoc, 
   doc, 
   setDoc,
+  getDoc,
   serverTimestamp, 
   query, 
   orderBy 
@@ -31,6 +32,10 @@ export const DataProvider = ({ children }) => {
   // Monthly Closings & Selected Reporting Month
   const [monthlyClosings, setMonthlyClosings] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState('CURRENT'); // 'CURRENT' or 'YYYY-MM'
+
+  // Historical snapshot for closed month rendering
+  const [historicalSnapshot, setHistoricalSnapshot] = useState(null);
+  const [historicalSnapshotLoading, setHistoricalSnapshotLoading] = useState(false);
   
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
@@ -258,6 +263,48 @@ export const DataProvider = ({ children }) => {
       unsubClosings();
     };
   }, [currentUser, isLocalFallback]);
+
+  // Fetch historical snapshot when a closed month is selected
+  useEffect(() => {
+    if (!selectedMonth || selectedMonth === 'CURRENT') {
+      setHistoricalSnapshot(null);
+      return;
+    }
+
+    const closingInState = monthlyClosings.find(
+      c => c.monthYear === selectedMonth && c.status === 'CLOSED'
+    );
+    if (!closingInState) {
+      setHistoricalSnapshot(null);
+      return;
+    }
+
+    // Try to fetch the full doc from Firestore for the richest data;
+    // fall back gracefully to the already-cached state entry.
+    const fetchSnapshot = async () => {
+      setHistoricalSnapshotLoading(true);
+      try {
+        if (!isLocalFallback) {
+          const snap = await getDoc(doc(db, 'monthly_closings', selectedMonth));
+          if (snap.exists()) {
+            setHistoricalSnapshot({ id: snap.id, ...snap.data() });
+          } else {
+            setHistoricalSnapshot(closingInState);
+          }
+        } else {
+          // Local fallback — use the in-memory cached entry
+          setHistoricalSnapshot(closingInState);
+        }
+      } catch (e) {
+        console.warn('Failed to fetch historical snapshot from Firestore, using cached state:', e);
+        setHistoricalSnapshot(closingInState);
+      } finally {
+        setHistoricalSnapshotLoading(false);
+      }
+    };
+
+    fetchSnapshot();
+  }, [selectedMonth, monthlyClosings, isLocalFallback]);
 
   // PRODUCT ACTIONS
   const addProduct = async (productData) => {
@@ -1007,12 +1054,20 @@ export const DataProvider = ({ children }) => {
       monthYear,
       closedAt: new Date().toISOString(),
       closedBy: currentUser?.displayName || currentUser?.email || 'Admin',
+      // Core financials
       totalSales: summaryData.totalSales || 0,
       grossProfit: summaryData.grossProfit || 0,
       totalExpenses: summaryData.totalExpenses || 0,
       netProfit: summaryData.netProfit || 0,
       carryoverCustomerDebt: summaryData.carryoverCustomerDebt || 0,
       carryoverSupplierDebt: summaryData.carryoverSupplierDebt || 0,
+      // Enriched fields for historical Dashboard rendering
+      totalSalesCount: summaryData.totalSalesCount || 0,
+      totalCashReceived: summaryData.totalCashReceived || 0,
+      totalLoanSales: summaryData.totalLoanSales || 0,
+      inventoryValue: summaryData.inventoryValue || 0,
+      totalInventoryUnits: summaryData.totalInventoryUnits || 0,
+      debtorCount: summaryData.debtorCount || 0,
       status: "CLOSED"
     };
 
@@ -1062,6 +1117,8 @@ export const DataProvider = ({ children }) => {
     setSelectedMonth,
     closeMonth,
     isClosedMonth,
+    historicalSnapshot,
+    historicalSnapshotLoading,
     addProduct,
     updateProduct,
     deleteProduct,

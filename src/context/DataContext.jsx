@@ -1103,6 +1103,12 @@ export const DataProvider = ({ children }) => {
 
   const isClosedMonth = selectedMonth !== 'CURRENT' && monthlyClosings.some(c => c.monthYear === selectedMonth && c.status === 'CLOSED');
 
+  // Set of all YYYY-MM periods that have been closed — used to exclude closed-period
+  // transactions from the "Current Active Month" live metrics in the Dashboard.
+  const closedMonthPeriods = new Set(
+    monthlyClosings.filter(c => c.status === 'CLOSED').map(c => c.monthYear)
+  );
+
   const value = {
     products,
     sales,
@@ -1117,6 +1123,7 @@ export const DataProvider = ({ children }) => {
     setSelectedMonth,
     closeMonth,
     isClosedMonth,
+    closedMonthPeriods,
     historicalSnapshot,
     historicalSnapshotLoading,
     addProduct,

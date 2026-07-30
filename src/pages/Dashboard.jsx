@@ -154,16 +154,24 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
   const { 
     sales, products, customers, 
     selectedMonth, isClosedMonth,
+    closedMonthPeriods,
     historicalSnapshot, historicalSnapshotLoading 
   } = useData();
   const { isManager } = useAuth();
 
   // ── Live metrics (used when selectedMonth === 'CURRENT') ─────────────────
+  // Excludes sales belonging to any already-closed month period so the
+  // active month resets to $0.00 immediately after a Xisaab Xir closeout.
   const activeSales = sales.filter(s => {
-    if (!selectedMonth || selectedMonth === 'CURRENT') return true;
     if (!s.date) return false;
     const d = new Date(s.date.toDate ? s.date.toDate() : s.date);
     const itemMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+    if (!selectedMonth || selectedMonth === 'CURRENT') {
+      // Only include sales that do NOT belong to a closed period
+      return !closedMonthPeriods.has(itemMonth);
+    }
+    // Historical view: exact period match
     return itemMonth === selectedMonth;
   });
 
@@ -301,7 +309,7 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
                   <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Revenue vs Profit over recent activity</p>
                 </div>
               </div>
-              <SalesProfitChart sales={sales} />
+              <SalesProfitChart sales={activeSales} />
             </>
           )}
         </div>
@@ -310,7 +318,7 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
           {isClosedMonth ? (
             <HistoricalFeedPlaceholder snapshot={snap} selectedMonth={selectedMonth} />
           ) : (
-            <RecentSalesStream sales={sales} onSelectTab={setActiveTab} />
+            <RecentSalesStream sales={activeSales} onSelectTab={setActiveTab} />
           )}
         </div>
       </div>

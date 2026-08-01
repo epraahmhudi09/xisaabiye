@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 export const ExpensesPage = () => {
-  const { showNotification } = useData();
+  const { showNotification, selectedMonth, isClosedMonth, closedMonthPeriods } = useData();
   const { currentUser, isManager } = useAuth();
   
   const [expenses, setExpenses] = useState([]);
@@ -89,8 +89,12 @@ export const ExpensesPage = () => {
     }
   };
 
-  // Unique categories list from expenses
-  const categoriesList = ['ALL', ...new Set(expenses.map(e => e.category))];
+  // Helper: derive YYYY-MM period string from an expense's date field
+  const getExpenseMonth = (exp) => {
+    if (!exp.date) return null;
+    const d = new Date(exp.date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
 
   // Helper date parsing (robust)
   const getParsedDate = (d) => {
@@ -98,8 +102,23 @@ export const ExpensesPage = () => {
     return new Date(d);
   };
 
-  // Filtered expenses list
-  const filteredExpenses = expenses.filter(exp => {
+  // Stage 1: Month-only pre-filter — drives KPI cards and scopes all downstream filters
+  const monthFilteredExpenses = expenses.filter(exp => {
+    const expMonth = getExpenseMonth(exp);
+    if (!selectedMonth || selectedMonth === 'CURRENT') {
+      // Current Active Month: exclude any expense that belongs to a closed period
+      if (!expMonth) return true;
+      return !closedMonthPeriods.has(expMonth);
+    }
+    // Historical closed month: show only expenses in that exact period
+    return expMonth === selectedMonth;
+  });
+
+  // Unique categories derived from the month-scoped dataset
+  const categoriesList = ['ALL', ...new Set(monthFilteredExpenses.map(e => e.category))];
+
+  // Stage 2: Full filter (search + category + date range) applied on top of month-scoped set
+  const filteredExpenses = monthFilteredExpenses.filter(exp => {
     // 1. Search filter (Notes, ReceiptNo, SupplierName)
     const nameMatch = (exp.supplierName || '').toLowerCase().includes(searchTerm.toLowerCase());
     const refMatch = (exp.receiptNo || '').toLowerCase().includes(searchTerm.toLowerCase());
@@ -115,7 +134,7 @@ export const ExpensesPage = () => {
 
     const expDate = getParsedDate(exp.date);
     const now = new Date();
-    
+
     if (dateFilter === 'TODAY') {
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       return expDate >= today;
@@ -141,27 +160,26 @@ export const ExpensesPage = () => {
     return true;
   });
 
-  // Calculate Summary metrics
+  // KPI metrics — all scoped to monthFilteredExpenses (respects selected month)
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  // Today's Operational Expenses
-  const todayExpensesVal = expenses
+  // Today's Operational Expenses (within the month-scoped set)
+  const todayExpensesVal = monthFilteredExpenses
     .filter(e => e.type === 'operational' && getParsedDate(e.date) >= todayStart)
     .reduce((acc, e) => acc + (e.amount || 0), 0);
 
-  // Monthly Operational Expenses
-  const monthlyExpensesVal = expenses
-    .filter(e => e.type === 'operational' && getParsedDate(e.date) >= monthStart)
+  // Total Operational Expenses for the selected period
+  const monthlyExpensesVal = monthFilteredExpenses
+    .filter(e => e.type === 'operational')
     .reduce((acc, e) => acc + (e.amount || 0), 0);
 
-  // Total Supplier Payments this month
-  const monthlySupplierPaymentsVal = expenses
-    .filter(e => e.type === 'supplier_payment' && getParsedDate(e.date) >= monthStart)
+  // Total Supplier Payments for the selected period
+  const monthlySupplierPaymentsVal = monthFilteredExpenses
+    .filter(e => e.type === 'supplier_payment')
     .reduce((acc, e) => acc + (e.amount || 0), 0);
 
-  // Outstanding Debt (Net sum of all supplier balances)
+  // Outstanding Debt (Net sum of all supplier balances — always current, not period-scoped)
   const outstandingDebtVal = suppliers.reduce((acc, s) => acc + (s.currentBalance || 0), 0);
 
   return (
@@ -174,7 +192,7 @@ export const ExpensesPage = () => {
             Monitor company overhead costs, log operational expenses, and record debt settlements to suppliers in real-time.
           </p>
         </div>
-        {!isManager && (
+        {!isManager && !isClosedMonth && (
           <button
             onClick={() => setIsAddOpen(true)}
             className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-950/60 flex items-center gap-2 self-start sm:self-auto transition-transform hover:scale-105"
@@ -372,7 +390,7 @@ export const ExpensesPage = () => {
                           >
                             <Info className="w-4 h-4" />
                           </button>
-                          {!isManager && (
+                          {!isManager && !isClosedMonth && (
                             <button
                               onClick={() => { setExpenseToDelete(exp); setIsDeleteOpen(true); }}
                               title="Delete Transaction"

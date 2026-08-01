@@ -20,7 +20,7 @@ import { EditSaleModal } from '../components/sales/EditSaleModal';
 import { Modal } from '../components/common/Modal';
 
 export const SalesPage = ({ onOpenNewSale }) => {
-  const { sales, deleteSale, showNotification, selectedMonth, isClosedMonth } = useData();
+  const { sales, deleteSale, showNotification, selectedMonth, isClosedMonth, closedMonthPeriods } = useData();
   const { isManager } = useAuth();
 
   const [selectedSale, setSelectedSale] = useState(null);
@@ -44,16 +44,26 @@ export const SalesPage = ({ onOpenNewSale }) => {
     }
   };
 
+  // Helper: derive YYYY-MM period string from a sale's date field
+  const getSaleMonth = (sale) => {
+    if (!sale.date) return null;
+    const d = new Date(sale.date.toDate ? sale.date.toDate() : sale.date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('ALL'); // ALL, cash, loan
 
   // Stage 1: Month-only filter — used for KPI summary cards
   const monthFilteredSales = sales.filter(sale => {
-    if (!selectedMonth || selectedMonth === 'CURRENT') return true;
-    if (!sale.date) return false;
-    const d = new Date(sale.date.toDate ? sale.date.toDate() : sale.date);
-    const itemMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    return itemMonth === selectedMonth;
+    const saleMonth = getSaleMonth(sale);
+    if (!selectedMonth || selectedMonth === 'CURRENT') {
+      // Current Active Month: exclude sales that belong to any closed period
+      if (!saleMonth) return true;
+      return !closedMonthPeriods.has(saleMonth);
+    }
+    // Historical closed month: show only sales matching that period
+    return saleMonth === selectedMonth;
   });
 
   // Stage 2: Full filter (month + search + status) — used for the data table

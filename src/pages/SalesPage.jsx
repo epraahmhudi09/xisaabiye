@@ -47,25 +47,29 @@ export const SalesPage = ({ onOpenNewSale }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('ALL'); // ALL, cash, loan
 
-  const filteredSales = sales.filter(sale => {
-    if (selectedMonth && selectedMonth !== 'CURRENT') {
-      if (!sale.date) return false;
-      const d = new Date(sale.date.toDate ? sale.date.toDate() : sale.date);
-      const itemMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      if (itemMonth !== selectedMonth) return false;
-    }
+  // Stage 1: Month-only filter — used for KPI summary cards
+  const monthFilteredSales = sales.filter(sale => {
+    if (!selectedMonth || selectedMonth === 'CURRENT') return true;
+    if (!sale.date) return false;
+    const d = new Date(sale.date.toDate ? sale.date.toDate() : sale.date);
+    const itemMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return itemMonth === selectedMonth;
+  });
 
-    const matchesSearch = 
+  // Stage 2: Full filter (month + search + status) — used for the data table
+  const filteredSales = monthFilteredSales.filter(sale => {
+    const matchesSearch =
       sale.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (sale.customerName && sale.customerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (sale.createdBy && sale.createdBy.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesStatus = paymentFilter === 'ALL' || sale.paymentStatus === paymentFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const totalCashSales = sales.filter(s => s.paymentStatus === 'cash').reduce((acc, s) => acc + s.totalPrice, 0);
-  const totalLoanSales = sales.filter(s => s.paymentStatus === 'loan').reduce((acc, s) => acc + s.totalPrice, 0);
+  // KPI metrics — scoped to the selected month's dataset
+  const totalCashSales = monthFilteredSales.filter(s => s.paymentStatus === 'cash').reduce((acc, s) => acc + s.totalPrice, 0);
+  const totalLoanSales = monthFilteredSales.filter(s => s.paymentStatus === 'loan').reduce((acc, s) => acc + s.totalPrice, 0);
 
   return (
     <div className="space-y-6">
@@ -93,7 +97,7 @@ export const SalesPage = ({ onOpenNewSale }) => {
         <div className="p-4 rounded-xl glass-panel border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
             <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Total Transactions Logged</span>
-            <h4 className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5">{sales.length} Sales</h4>
+            <h4 className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5">{monthFilteredSales.length} Sales</h4>
           </div>
           <ShoppingCart className="w-6 h-6 text-slate-500 dark:text-slate-400" />
         </div>

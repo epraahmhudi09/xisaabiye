@@ -1,14 +1,17 @@
 import React from 'react';
 import { Modal } from '../common/Modal';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { useAuth } from '../../context/AuthContext';
 import { Badge } from '../common/Badge';
 import { Printer, Calendar, User, ShoppingBag, Receipt, DollarSign, ArrowRight } from 'lucide-react';
 
 export const SaleDetailsModal = ({ isOpen, onClose, sale }) => {
+  const { currentUser } = useAuth();
   if (!sale) return null;
 
   const isLoan = sale.paymentStatus === 'loan';
   const profit = sale.profit || 0;
+  const loggedByName = currentUser?.displayName || currentUser?.email || 'Abdulahi Ahmed';
 
   const handlePrintReceipt = () => {
     const printWindow = window.open('', '_blank', 'width=600,height=800');
@@ -89,16 +92,16 @@ export const SaleDetailsModal = ({ isOpen, onClose, sale }) => {
           <div class="header">
             <h1>XISAABIYE</h1>
             <p>Stock & Dayn System</p>
-            <p>Mogadishu, Somalia</p>
+            <p>Galkacyo, Somalia</p>
           </div>
           
           <table class="info-table">
             <tr>
               <td><strong>Tx ID:</strong> ${sale.id}</td>
-              <td class="text-right"><strong>Date:</strong> ${new Date(sale.date || Date.now()).toLocaleString()}</td>
+              <td class="text-right"><strong>Date:</strong> ${new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</td>
             </tr>
             <tr>
-              <td><strong>Logged By:</strong> ${sale.createdBy || 'System'}</td>
+              <td><strong>Logged By:</strong> ${loggedByName}</td>
               <td class="text-right"><strong>Status:</strong> ${(sale.paymentStatus || 'cash').toUpperCase()}</td>
             </tr>
             ${sale.customerName ? `
@@ -156,6 +159,7 @@ export const SaleDetailsModal = ({ isOpen, onClose, sale }) => {
           ` : ''}
           
           <div class="footer">
+            <p style="font-weight: bold; font-size: 13px; margin-bottom: 8px; letter-spacing: 0.5px;">Fadlan Numberkan Lacagta Kudir = 0906201705</p>
             <p>Mahadsanid / Thank you for your business!</p>
             <p>Powered by Xisaabiye System</p>
           </div>
@@ -265,7 +269,7 @@ export const SaleDetailsModal = ({ isOpen, onClose, sale }) => {
           <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500">
             <div className="flex items-center gap-1">
               <User className="w-3.5 h-3.5" />
-              <span>Logged By: <strong>{sale.createdBy || 'System'}</strong></span>
+              <span>Logged By: <strong>{loggedByName}</strong></span>
             </div>
             <div className="text-right">
               <span>Record ID: {sale.id.slice(0, 8)}...</span>

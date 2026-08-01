@@ -1,6 +1,7 @@
 import React from 'react';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { StatCard } from '../components/common/StatCard';
 import { SalesProfitChart } from '../components/dashboard/SalesProfitChart';
 import { RecentSalesStream } from '../components/dashboard/RecentSalesStream';
@@ -26,37 +27,41 @@ const formatMonthLabel = (yearMonthStr) => {
 };
 
 // ─── Historical Archive Banner ──────────────────────────────────────────────
-const HistoricalBanner = ({ selectedMonth }) => (
-  <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl border border-amber-400/40 bg-amber-500/10 dark:bg-amber-950/30 shadow-sm">
-    <div className="p-2 rounded-xl bg-amber-500/20 dark:bg-amber-500/10 border border-amber-400/30 text-amber-600 dark:text-amber-400 flex-shrink-0">
-      <Lock className="w-4 h-4" />
+const HistoricalBanner = ({ selectedMonth }) => {
+  const { t } = useLanguage();
+  return (
+    <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl border border-amber-400/40 bg-amber-500/10 dark:bg-amber-950/30 shadow-sm">
+      <div className="p-2 rounded-xl bg-amber-500/20 dark:bg-amber-500/10 border border-amber-400/30 text-amber-600 dark:text-amber-400 flex-shrink-0">
+        <Lock className="w-4 h-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-extrabold text-amber-700 dark:text-amber-300 leading-tight">
+          {t('dashboard.historicalBannerTitle')}: {formatMonthLabel(selectedMonth)} {t('dashboard.historicalBannerClosed')}
+        </p>
+        <p className="text-xs text-amber-600/70 dark:text-amber-400/60 font-medium mt-0.5">
+          {t('dashboard.historicalBannerNote')}
+        </p>
+      </div>
+      <span className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/5 border border-amber-400/30 px-2.5 py-1 rounded-lg uppercase tracking-wider flex-shrink-0">
+        <Archive className="w-3 h-3" />
+        {t('dashboard.archive')}
+      </span>
     </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-sm font-extrabold text-amber-700 dark:text-amber-300 leading-tight">
-        Viewing Historical Archived Period: {formatMonthLabel(selectedMonth)} (CLOSED) — Read Only
-      </p>
-      <p className="text-xs text-amber-600/70 dark:text-amber-400/60 font-medium mt-0.5">
-        All metrics are frozen from the closing snapshot. No edits can be made to this period.
-      </p>
-    </div>
-    <span className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/5 border border-amber-400/30 px-2.5 py-1 rounded-lg uppercase tracking-wider flex-shrink-0">
-      <Archive className="w-3 h-3" />
-      Archive
-    </span>
-  </div>
-);
+  );
+};
 
 // ─── Historical Snapshot Summary (replaces chart) ───────────────────────────
 const HistoricalChartPanel = ({ snapshot, selectedMonth }) => {
+  const { t } = useLanguage();
   if (!snapshot) return null;
   const rows = [
-    { label: 'Total Sales Revenue',     value: formatCurrency(snapshot.totalSales || 0),           color: 'text-emerald-500' },
-    { label: 'Gross Profit',            value: formatCurrency(snapshot.grossProfit || 0),           color: 'text-blue-500' },
-    { label: 'Operational Expenses',    value: `-${formatCurrency(snapshot.totalExpenses || 0)}`,   color: 'text-rose-400' },
-    { label: 'Net Profit / Loss',       value: formatCurrency(snapshot.netProfit || 0),             color: (snapshot.netProfit || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400', bold: true },
-    { label: 'Cash Collected',          value: formatCurrency(snapshot.totalCashReceived || 0),     color: 'text-amber-400' },
-    { label: 'Dayn / Loan Sales',       value: formatCurrency(snapshot.totalLoanSales || 0),        color: 'text-rose-400' },
-    { label: 'Carryover Customer Debt', value: formatCurrency(snapshot.carryoverCustomerDebt || 0), color: 'text-orange-400' },
+    { label: t('dashboard.totalSalesRevenue'), value: formatCurrency(snapshot.totalSales || 0),           color: 'text-emerald-500' },
+    { label: t('dashboard.grossProfit'),       value: formatCurrency(snapshot.grossProfit || 0),           color: 'text-blue-500' },
+    { label: t('dashboard.operationalExpenses'), value: `-${formatCurrency(snapshot.totalExpenses || 0)}`, color: 'text-rose-400' },
+    { label: t('dashboard.netProfitLoss'),     value: formatCurrency(snapshot.netProfit || 0),             color: (snapshot.netProfit || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400', bold: true },
+    { label: t('dashboard.cashCollected'),     value: formatCurrency(snapshot.totalCashReceived || 0),     color: 'text-amber-400' },
+    { label: t('dashboard.daynLoanSales'),     value: formatCurrency(snapshot.totalLoanSales || 0),        color: 'text-rose-400' },
+    { label: t('dashboard.carryoverDebt'),     value: formatCurrency(snapshot.carryoverCustomerDebt || 0), color: 'text-orange-400' },
   ];
 
   return (
@@ -67,10 +72,10 @@ const HistoricalChartPanel = ({ snapshot, selectedMonth }) => {
         </div>
         <div>
           <p className="text-sm font-extrabold text-slate-900 dark:text-white">
-            Period Financial Summary
+            {t('dashboard.periodFinancialSummary')}
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Frozen snapshot · {formatMonthLabel(selectedMonth)}
+            {t('dashboard.frozenSnapshot')} · {formatMonthLabel(selectedMonth)}
           </p>
         </div>
       </div>
@@ -97,7 +102,7 @@ const HistoricalChartPanel = ({ snapshot, selectedMonth }) => {
 
       {snapshot.closedBy && (
         <p className="text-[10px] text-slate-400 dark:text-slate-600 mt-3 text-right font-medium">
-          Closed by <span className="font-bold text-slate-500 dark:text-slate-500">{snapshot.closedBy}</span>
+          {t('dashboard.closedBy')} <span className="font-bold text-slate-500 dark:text-slate-500">{snapshot.closedBy}</span>
         </p>
       )}
     </div>
@@ -105,15 +110,17 @@ const HistoricalChartPanel = ({ snapshot, selectedMonth }) => {
 };
 
 // ─── Historical Feed Placeholder (replaces RecentSalesStream) ───────────────
-const HistoricalFeedPlaceholder = ({ snapshot, selectedMonth }) => (
+const HistoricalFeedPlaceholder = ({ snapshot, selectedMonth }) => {
+  const { t } = useLanguage();
+  return (
   <div className="glass-panel rounded-2xl border border-slate-200 dark:border-slate-800 p-6 bg-white dark:bg-slate-900/60 shadow-sm h-full flex flex-col">
     <div className="flex items-center gap-2 mb-4">
       <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-400/20 text-amber-500">
         <Archive className="w-4 h-4" />
       </div>
       <div>
-        <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Transaction Archive</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Closed period — read only</p>
+        <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">{t('dashboard.transactionArchive')}</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{t('dashboard.closedReadOnly')}</p>
       </div>
     </div>
 
@@ -123,31 +130,32 @@ const HistoricalFeedPlaceholder = ({ snapshot, selectedMonth }) => (
       </div>
       <div>
         <p className="text-sm font-extrabold text-slate-800 dark:text-slate-200">
-          {formatMonthLabel(selectedMonth)} (CLOSED)
+          {formatMonthLabel(selectedMonth)} {t('dashboard.historicalBannerClosed')}
         </p>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium max-w-[200px] mx-auto leading-relaxed">
-          Live transaction feed is not available for archived periods.
+          {t('dashboard.liveFeedNotAvailable')}
         </p>
       </div>
       {snapshot && (
         <div className="grid grid-cols-2 gap-2 w-full mt-2">
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 text-center">
-            <p className="text-xs text-slate-400 font-semibold">Sales Count</p>
+            <p className="text-xs text-slate-400 font-semibold">{t('dashboard.salesCount')}</p>
             <p className="text-lg font-extrabold text-slate-800 dark:text-white mt-0.5">
-              {snapshot.totalSalesCount != null ? snapshot.totalSalesCount : 'N/A'}
+              {snapshot.totalSalesCount != null ? snapshot.totalSalesCount : t('common.na')}
             </p>
           </div>
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 text-center">
-            <p className="text-xs text-slate-400 font-semibold">Debtors</p>
+            <p className="text-xs text-slate-400 font-semibold">{t('dashboard.debtors')}</p>
             <p className="text-lg font-extrabold text-rose-500 mt-0.5">
-              {snapshot.debtorCount != null ? snapshot.debtorCount : 'N/A'}
+              {snapshot.debtorCount != null ? snapshot.debtorCount : t('common.na')}
             </p>
           </div>
         </div>
       )}
     </div>
   </div>
-);
+  );
+};
 
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
@@ -158,6 +166,7 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
     historicalSnapshot, historicalSnapshotLoading 
   } = useData();
   const { isManager } = useAuth();
+  const { t } = useLanguage();
 
   // ── Live metrics (used when selectedMonth === 'CURRENT') ─────────────────
   // Excludes sales belonging to any already-closed month period so the
@@ -205,14 +214,14 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
   const displayInventory = isClosedMonth ? snapInventory : totalInventoryValue;
 
   const revenueSubtitle = isClosedMonth
-    ? (snapSalesCount !== null ? `${snapSalesCount} sales recorded` : 'Snapshot total')
-    : `${activeSales.length} sales recorded`;
+    ? (snapSalesCount !== null ? `${snapSalesCount} ${t('dashboard.salesRecorded')}` : t('dashboard.snapshotTotal'))
+    : `${activeSales.length} ${t('dashboard.salesRecorded')}`;
   const loansSubtitle = isClosedMonth
-    ? (snapDebtorCount !== null ? `${snapDebtorCount} customers owing debt` : 'At period close')
-    : `${customers.filter(c => c.totalDebt > 0).length} customers owing debt`;
+    ? (snapDebtorCount !== null ? `${snapDebtorCount} ${t('dashboard.customersOwing')}` : t('dashboard.atPeriodClose'))
+    : `${customers.filter(c => c.totalDebt > 0).length} ${t('dashboard.customersOwing')}`;
   const inventorySubtitle = isClosedMonth
-    ? (snapInventoryUnits !== null ? `${snapInventoryUnits} total units at close` : 'Snapshot value')
-    : `${products.reduce((acc, p) => acc + (p.stockQuantity || 0), 0)} total units`;
+    ? (snapInventoryUnits !== null ? `${snapInventoryUnits} ${t('dashboard.totalUnitsClose')}` : t('dashboard.snapshotValue'))
+    : `${products.reduce((acc, p) => acc + (p.stockQuantity || 0), 0)} ${t('dashboard.totalUnits')}`;
 
   return (
     <div className="space-y-5">
@@ -225,12 +234,12 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Business Overview &amp; Real-Time Metrics
+            {t('dashboard.title')}
           </h2>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">
             {isClosedMonth
-              ? `Historical Ledger View — ${formatMonthLabel(selectedMonth)} (CLOSED)`
-              : 'Real-time synchronization active for business partners.'}
+              ? `${t('dashboard.historicalSubtitle')} — ${formatMonthLabel(selectedMonth)} ${t('dashboard.historicalBannerClosed')}`
+              : t('dashboard.subtitle')}
           </p>
         </div>
         {/* POS button is fully hidden when viewing any closed month */}
@@ -240,7 +249,7 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
             className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-950/60 flex items-center gap-2 self-start sm:self-auto transition-transform hover:scale-105"
           >
             <ShoppingCart className="w-4 h-4" />
-            <span>+ Record New Sale (POS)</span>
+            <span>{t('dashboard.recordSale')}</span>
           </button>
         )}
       </div>
@@ -258,21 +267,21 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
       {(!isClosedMonth || !historicalSnapshotLoading) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
-            title="Total Revenue"
+            title={t('dashboard.totalRevenue')}
             value={formatCurrency(displayRevenue)}
             subtitle={revenueSubtitle}
             icon={DollarSign}
             color="emerald"
           />
           <StatCard
-            title="Total Net Profit"
+            title={t('dashboard.totalNetProfit')}
             value={formatCurrency(displayProfit)}
-            subtitle={isClosedMonth ? 'Net margin at close' : 'Margin calculated per sale'}
+            subtitle={isClosedMonth ? t('dashboard.netMarginClose') : t('dashboard.marginCalculated')}
             icon={TrendingUp}
             color="blue"
           />
           <StatCard
-            title="Outstanding Loans (Dayn)"
+            title={t('dashboard.outstandingLoans')}
             value={formatCurrency(displayLoans)}
             subtitle={loansSubtitle}
             icon={AlertTriangle}
@@ -280,14 +289,14 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
             alert={displayLoans > 0}
           />
           <StatCard
-            title="Total Cash Recd"
+            title={t('dashboard.totalCashRecd')}
             value={formatCurrency(displayCash)}
-            subtitle={isClosedMonth ? 'Cash settled at close' : 'Fully settled cash'}
+            subtitle={isClosedMonth ? t('dashboard.cashSettledClose') : t('dashboard.fullySettled')}
             icon={Wallet}
             color="amber"
           />
           <StatCard
-            title="Inventory Value"
+            title={t('dashboard.inventoryValue')}
             value={formatCurrency(displayInventory)}
             subtitle={inventorySubtitle}
             icon={PackageCheck}
@@ -305,8 +314,8 @@ export const Dashboard = ({ setActiveTab, onOpenNewSale }) => {
             <>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">Sales &amp; Profitability Overview</h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Revenue vs Profit over recent activity</p>
+                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">{t('dashboard.salesProfitOverview')}</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{t('dashboard.revenueVsProfit')}</p>
                 </div>
               </div>
               <SalesProfitChart sales={activeSales} />

@@ -11,8 +11,12 @@ import {
 } from 'recharts';
 import { formatCurrency, formatDateShort } from '../../utils/formatters';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const SalesProfitChart = ({ sales = [] }) => {
+  const { t } = useLanguage();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   // Aggregate sales by date
   const chartDataMap = {};
 
@@ -41,16 +45,13 @@ export const SalesProfitChart = ({ sales = [] }) => {
   if (chartData.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center text-slate-500 text-sm font-medium">
-        No sales data available for chart visualizer
+        {t('dashboard.noSalesChart')}
       </div>
     );
   }
 
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   return (
-    <div className="w-full h-72 pt-4">
+    <div className="w-full h-72 pt-4 overflow-hidden">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#334155" : "#cbd5e1"} opacity={isDark ? 0.5 : 0.8} />
@@ -68,9 +69,9 @@ export const SalesProfitChart = ({ sales = [] }) => {
             formatter={(val) => formatCurrency(val)}
           />
           <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
-          <Bar dataKey="Revenue" fill="#2563eb" radius={[4, 4, 0, 0]} name="Total Revenue ($)" />
-          <Bar dataKey="Profit" fill="#60a5fa" radius={[4, 4, 0, 0]} name="Net Profit ($)" />
-          <Bar dataKey="Loan" fill="#f43f5e" radius={[4, 4, 0, 0]} name="Loan / Dayn ($)" />
+          <Bar dataKey="Revenue" fill="#2563eb" radius={[4, 4, 0, 0]} name={`${t('dashboard.totalRevenue')} ($)`} />
+          <Bar dataKey="Profit" fill="#60a5fa" radius={[4, 4, 0, 0]} name={`${t('dashboard.totalNetProfit')} ($)`} />
+          <Bar dataKey="Loan" fill="#f43f5e" radius={[4, 4, 0, 0]} name={`${t('dashboard.daynLoanSales')} ($)`} />
         </BarChart>
       </ResponsiveContainer>
     </div>

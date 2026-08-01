@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { useLanguage } from '../context/LanguageContext';
 import { formatDate } from '../utils/formatters';
 import { Badge } from '../components/common/Badge';
 import { Modal } from '../components/common/Modal';
@@ -24,6 +25,7 @@ import {
 export const UserManagement = () => {
   const { isAdmin } = useAuth();
   const { usersList, loading, updateUser, deleteUser, createUserAccount } = useData();
+  const { t } = useLanguage();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
@@ -55,9 +57,9 @@ export const UserManagement = () => {
     return (
       <div className="p-12 text-center glass-panel rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-white dark:bg-slate-900/60 font-sans">
         <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto mb-3 animate-pulse" />
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Access Restricted</h3>
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('activityLogs.restricted')}</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          User Account Directory and Role Access Control are restricted exclusively to System Administrators.
+          {t('userManagement.restrictedSub')}
         </p>
       </div>
     );
@@ -191,9 +193,9 @@ export const UserManagement = () => {
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">User Management & Privilege Directory</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{t('userManagement.title')}</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            Oversee corporate access permissions, assign cashier/staff roles, and audit account states.
+            {t('userManagement.subtitle')}
           </p>
         </div>
         <button
@@ -209,7 +211,7 @@ export const UserManagement = () => {
           className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-950/60 flex items-center gap-2 self-start sm:self-auto transition-transform hover:scale-105"
         >
           <Plus className="w-4 h-4" />
-          <span>+ Add New User</span>
+          <span>{t('userManagement.addUser')}</span>
         </button>
       </div>
 
@@ -221,42 +223,116 @@ export const UserManagement = () => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search users by name or email..."
+            placeholder={t('userManagement.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2 rounded-xl glass-input text-xs font-semibold"
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Filter Role:</span>
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+          <Filter className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 shrink-0">{t('userManagement.filterRole')}</span>
           {['ALL', 'admin', 'manager', 'cashier', 'staff'].map((role) => (
             <button
               key={role}
               onClick={() => setRoleFilter(role)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase transition-all duration-200 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase whitespace-nowrap shrink-0 transition-all duration-200 ${
                 roleFilter === role
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-850'
               }`}
             >
-              {role === 'ALL' ? 'ALL ROLES' : role}
+              {role === 'ALL' ? t('userManagement.allRoles') : role}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Users Directory Table Grid */}
-      <div className="glass-panel rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 overflow-hidden shadow-xl">
+      {/* Users Directory — Mobile Cards */}
+      <div className="sm:hidden space-y-3">
+        {loading ? (
+          Array.from({ length: 3 }).map((_, idx) => (
+            <div key={idx} className="glass-panel rounded-2xl border border-slate-200 dark:border-slate-800 p-4 animate-pulse h-24" />
+          ))
+        ) : filteredUsers.length === 0 ? (
+          <div className="py-12 text-center text-slate-500 font-medium glass-panel rounded-2xl border border-slate-200 dark:border-slate-800">
+            {t('userManagement.noUsers')}
+          </div>
+        ) : (
+          filteredUsers.map((usr) => {
+            const isSuspended = usr.status === 'suspended' || usr.status === 'inactive';
+            return (
+              <div key={usr.id} className="glass-panel rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 shrink-0">
+                      {usr.role === 'admin' ? <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" /> : <User className="w-4 h-4" />}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-slate-900 dark:text-white truncate">{usr.displayName || t('common.user')}</h4>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 font-medium truncate">{usr.email}</p>
+                    </div>
+                  </div>
+                  <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold shrink-0 ${
+                    isSuspended
+                      ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30'
+                      : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isSuspended ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>
+                    {isSuspended ? t('common.inactive') : t('common.active')}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
+                  {usr.role === 'admin' ? (
+                    <Badge variant="cash" className="uppercase">{t('userManagement.administrator')}</Badge>
+                  ) : usr.role === 'manager' ? (
+                    <Badge variant="info" className="uppercase">{t('common.manager')}</Badge>
+                  ) : usr.role === 'cashier' ? (
+                    <Badge variant="warning" className="uppercase">{t('common.cashier')}</Badge>
+                  ) : (
+                    <Badge variant="neutral" className="uppercase">{usr.role || t('common.staff')}</Badge>
+                  )}
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{formatDate(usr.createdAt)}</span>
+                </div>
+
+                <div className="flex items-center gap-2 mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
+                  <button
+                    onClick={() => handleOpenDetails(usr)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 text-xs font-bold active:scale-95 transition-transform"
+                  >
+                    <Info className="w-3.5 h-3.5" /> {t('common.details')}
+                  </button>
+                  <button
+                    onClick={() => handleOpenEdit(usr)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-amber-600 dark:text-amber-400 border border-slate-200 dark:border-slate-800 text-xs font-bold active:scale-95 transition-transform"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" /> {t('common.edit')}
+                  </button>
+                  <button
+                    onClick={() => handleOpenDelete(usr)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-rose-600 dark:text-rose-400 border border-slate-200 dark:border-slate-800 text-xs font-bold active:scale-95 transition-transform"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> {t('common.delete')}
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Users Directory Table Grid — Desktop */}
+      <div className="hidden sm:block glass-panel rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 text-[11px] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                <th className="py-4 px-6">User Profile</th>
-                <th className="py-4 px-6">Email Address</th>
-                <th className="py-4 px-6">System Role</th>
-                <th className="py-4 px-6">Status</th>
-                <th className="py-4 px-6">Created Date</th>
-                <th className="py-4 px-6 text-center">Actions</th>
+                <th className="py-4 px-6">{t('userManagement.userProfile')}</th>
+                <th className="py-4 px-6">{t('userManagement.emailAddress')}</th>
+                <th className="py-4 px-6">{t('userManagement.systemRole')}</th>
+                <th className="py-4 px-6">{t('common.status')}</th>
+                <th className="py-4 px-6">{t('userManagement.createdDate')}</th>
+                <th className="py-4 px-6 text-center">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
@@ -278,7 +354,7 @@ export const UserManagement = () => {
               ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="py-12 text-center text-slate-500 font-medium">
-                    No users matching criteria found in directory database.
+                    {t('userManagement.noUsers')}
                   </td>
                 </tr>
               ) : (
@@ -290,30 +366,30 @@ export const UserManagement = () => {
                         <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300">
                           {usr.role === 'admin' ? <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" /> : <User className="w-4 h-4" />}
                         </div>
-                        <span>{usr.displayName || 'User'}</span>
+                        <span>{usr.displayName || t('common.user')}</span>
                       </td>
                       <td className="py-4 px-6 text-xs text-slate-600 dark:text-slate-300 font-medium">
                         {usr.email}
                       </td>
                       <td className="py-4 px-6">
                         {usr.role === 'admin' ? (
-                          <Badge variant="cash" className="uppercase">ADMINISTRATOR</Badge>
+                          <Badge variant="cash" className="uppercase">{t('userManagement.administrator')}</Badge>
                         ) : usr.role === 'manager' ? (
-                          <Badge variant="info" className="uppercase">MANAGER</Badge>
+                          <Badge variant="info" className="uppercase">{t('common.manager')}</Badge>
                         ) : usr.role === 'cashier' ? (
-                          <Badge variant="warning" className="uppercase">CASHIER</Badge>
+                          <Badge variant="warning" className="uppercase">{t('common.cashier')}</Badge>
                         ) : (
-                          <Badge variant="neutral" className="uppercase">{usr.role || 'STAFF'}</Badge>
+                          <Badge variant="neutral" className="uppercase">{usr.role || t('common.staff')}</Badge>
                         )}
                       </td>
                       <td className="py-4 px-6 font-medium">
                         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                          isSuspended 
-                            ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30' 
+                          isSuspended
+                            ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30'
                             : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${isSuspended ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>
-                          {isSuspended ? 'Inactive' : 'Active'}
+                          {isSuspended ? t('common.inactive') : t('common.active')}
                         </span>
                       </td>
                       <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -323,23 +399,23 @@ export const UserManagement = () => {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => handleOpenDetails(usr)}
-                            title="View Full Profile"
+                            title={t('common.view')}
                             className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
                           >
                             <Info className="w-4 h-4" />
                           </button>
-                          
+
                           <button
                             onClick={() => handleOpenEdit(usr)}
-                            title="Edit Role & Status"
+                            title={t('common.edit')}
                             className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
-                          
+
                           <button
                             onClick={() => handleOpenDelete(usr)}
-                            title="Remove Account"
+                            title={t('common.delete')}
                             className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -359,7 +435,7 @@ export const UserManagement = () => {
       <Modal
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
-        title="User Account Details"
+        title={t('userManagement.userAccountDetails')}
         maxWidth="max-w-md"
       >
         {selectedUser && (
@@ -370,15 +446,15 @@ export const UserManagement = () => {
               </div>
               <div>
                 <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
-                  {selectedUser.displayName || 'User Profile'}
+                  {selectedUser.displayName || t('userManagement.userProfile')}
                 </h4>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase">{selectedUser.role || 'Staff'}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase">{selectedUser.role || t('common.staff')}</span>
               </div>
             </div>
 
             <div className="space-y-3 text-xs font-semibold">
               <div>
-                <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">User Unique UID</span>
+                <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">{t('userManagement.userUid')}</span>
                 <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
                   <code className="text-slate-700 dark:text-slate-300 select-all font-mono break-all pr-2">{selectedUser.uid || selectedUser.id}</code>
                   <button
@@ -393,31 +469,31 @@ export const UserManagement = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">Email Address</span>
+                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">{t('userManagement.emailAddress')}</span>
                   <p className="text-slate-900 dark:text-white text-xs truncate">{selectedUser.email}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">Role Group</span>
+                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">{t('userManagement.roleGroup')}</span>
                   <p className="text-slate-900 dark:text-white text-xs uppercase">{selectedUser.role || 'staff'}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-1">
                 <div>
-                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">Created Date</span>
+                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">{t('userManagement.createdDate')}</span>
                   <p className="text-slate-900 dark:text-white text-xs">{formatDate(selectedUser.createdAt)}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">Current Status</span>
+                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">{t('userManagement.currentStatus')}</span>
                   <p className={`text-xs font-bold ${selectedUser.status === 'suspended' || selectedUser.status === 'inactive' ? 'text-rose-500' : 'text-emerald-500'}`}>
-                    {selectedUser.status === 'suspended' || selectedUser.status === 'inactive' ? 'Inactive' : 'Active'}
+                    {selectedUser.status === 'suspended' || selectedUser.status === 'inactive' ? t('common.inactive') : t('common.active')}
                   </p>
                 </div>
               </div>
 
               {selectedUser.createdBy && (
                 <div>
-                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">Created By (Admin)</span>
+                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">{t('userManagement.createdByAdmin')}</span>
                   <p className="text-slate-900 dark:text-white text-xs font-semibold">{selectedUser.createdBy}</p>
                 </div>
               )}
@@ -429,7 +505,7 @@ export const UserManagement = () => {
                 onClick={() => setIsDetailsOpen(false)}
                 className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition-colors"
               >
-                Close Details
+                {t('userManagement.closeDetails')}
               </button>
             </div>
           </div>
@@ -440,21 +516,21 @@ export const UserManagement = () => {
       <Modal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
-        title="Modify User Credentials"
+        title={t('userManagement.modifyCredentials')}
         maxWidth="max-w-md"
       >
         {selectedUser && (
           <form onSubmit={handleUpdateUser} className="space-y-4 font-sans text-slate-800 dark:text-slate-200">
             <div>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-3">
-                Update credentials access permissions for <span className="font-bold text-slate-900 dark:text-white">{selectedUser.displayName || selectedUser.email}</span>.
+                {t('userManagement.updatePermissionsFor')} <span className="font-bold text-slate-900 dark:text-white">{selectedUser.displayName || selectedUser.email}</span>.
               </p>
             </div>
 
             {/* Select Role */}
             <div className="space-y-2">
               <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
-                System Role Selection
+                {t('userManagement.systemRoleSelection')}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {['admin', 'manager', 'cashier', 'staff'].map((r) => (
@@ -477,9 +553,9 @@ export const UserManagement = () => {
             {/* Select Status */}
             <div className="space-y-2">
               <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
-                User Access Status
+                {t('userManagement.userAccessStatus')}
               </label>
-              <div className="flex gap-4">
+              <div className="flex flex-col xs:flex-row gap-3 xs:gap-4">
                 <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                   <input
                     type="radio"
@@ -491,7 +567,7 @@ export const UserManagement = () => {
                   />
                   <div className="flex items-center gap-1">
                     <UserCheck className="w-4 h-4 text-emerald-500" />
-                    <span>Active (Allowed Logins)</span>
+                    <span>{t('userManagement.activeLogins')}</span>
                   </div>
                 </label>
 
@@ -506,7 +582,7 @@ export const UserManagement = () => {
                   />
                   <div className="flex items-center gap-1">
                     <UserX className="w-4 h-4 text-rose-500" />
-                    <span>Inactive (Banned)</span>
+                    <span>{t('userManagement.inactiveBanned')}</span>
                   </div>
                 </label>
               </div>
@@ -519,15 +595,15 @@ export const UserManagement = () => {
                 onClick={() => setIsEditOpen(false)}
                 className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
-              
+
               <button
                 type="submit"
                 disabled={submitting}
                 className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md flex items-center gap-2"
               >
-                <span>{submitting ? 'Saving...' : 'Apply Changes'}</span>
+                <span>{submitting ? t('userManagement.saving') : t('userManagement.applyChanges')}</span>
               </button>
             </div>
           </form>
@@ -538,7 +614,7 @@ export const UserManagement = () => {
       <Modal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        title="Confirm User Account Deletion"
+        title={t('userManagement.confirmDeleteTitle')}
         maxWidth="max-w-md"
       >
         {selectedUser && (
@@ -546,20 +622,20 @@ export const UserManagement = () => {
             <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 flex gap-3 text-rose-700 dark:text-rose-300 text-xs">
               <ShieldAlert className="w-5 h-5 flex-shrink-0" />
               <div>
-                <p className="font-bold">CRITICAL WARNING:</p>
+                <p className="font-bold">{t('userManagement.criticalWarning')}</p>
                 <p className="mt-0.5">
-                  Deleting this user account is permanent and cannot be undone. All role permission claims will be revoked immediately.
+                  {t('userManagement.deleteWarningNote')}
                 </p>
               </div>
             </div>
 
             <div className="text-xs font-semibold space-y-1">
-              <p>User details targeted for deletion:</p>
+              <p>{t('userManagement.targetedForDeletion')}</p>
               <p className="text-slate-900 dark:text-white">
-                Name: <span className="font-bold">{selectedUser.displayName || 'Unnamed User'}</span>
+                {t('userManagement.name')} <span className="font-bold">{selectedUser.displayName || 'Unnamed User'}</span>
               </p>
               <p className="text-slate-900 dark:text-white">
-                Email: <span className="font-mono font-bold">{selectedUser.email}</span>
+                {t('userManagement.email')} <span className="font-mono font-bold">{selectedUser.email}</span>
               </p>
             </div>
 
@@ -569,16 +645,16 @@ export const UserManagement = () => {
                 onClick={() => setIsDeleteOpen(false)}
                 className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
-              
+
               <button
                 type="button"
                 onClick={handleDeleteUser}
                 disabled={submitting}
                 className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md"
               >
-                {submitting ? 'Deleting...' : 'Yes, Delete Account'}
+                {submitting ? t('userManagement.deleting') : t('userManagement.deleteAccount')}
               </button>
             </div>
           </div>
@@ -589,7 +665,7 @@ export const UserManagement = () => {
       <Modal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        title="Add New System User"
+        title={t('userManagement.addNewUser')}
         maxWidth="max-w-md"
       >
         <form onSubmit={handleCreateUser} className="space-y-4 font-sans text-slate-800 dark:text-slate-200">
@@ -601,13 +677,13 @@ export const UserManagement = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">
-              Full Name / Alias *
+              {t('userManagement.fullName')}
             </label>
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="e.g. Mohamed Ali"
+              placeholder={t('userManagement.fullNamePlaceholder')}
               className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-semibold animate-in fade-in"
               required
             />
@@ -615,13 +691,13 @@ export const UserManagement = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">
-              Email Address *
+              {t('userManagement.emailAddress')} *
             </label>
             <input
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="user@example.com"
+              placeholder={t('userManagement.emailPlaceholder')}
               className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-semibold"
               required
             />
@@ -629,13 +705,13 @@ export const UserManagement = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">
-              Password *
+              {t('userManagement.password')}
             </label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Minimum 6 characters"
+              placeholder={t('userManagement.passwordPlaceholder')}
               className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-semibold"
               required
             />
@@ -644,31 +720,31 @@ export const UserManagement = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">
-                System Role *
+                {t('userManagement.systemRole')} *
               </label>
               <select
                 value={newRole}
                 onChange={(e) => setNewRole(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl glass-input text-xs font-bold uppercase cursor-pointer"
               >
-                <option value="admin" className="text-slate-900 bg-white">Admin</option>
-                <option value="manager" className="text-slate-900 bg-white">Manager</option>
-                <option value="cashier" className="text-slate-900 bg-white">Cashier</option>
-                <option value="staff" className="text-slate-900 bg-white">Staff</option>
+                <option value="admin" className="text-slate-900 bg-white">{t('common.admin')}</option>
+                <option value="manager" className="text-slate-900 bg-white">{t('common.manager')}</option>
+                <option value="cashier" className="text-slate-900 bg-white">{t('common.cashier')}</option>
+                <option value="staff" className="text-slate-900 bg-white">{t('common.staff')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">
-                Status *
+                {t('common.status')} *
               </label>
               <select
                 value={newStatus}
                 onChange={(e) => setNewStatus(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl glass-input text-xs font-bold uppercase cursor-pointer"
               >
-                <option value="active" className="text-slate-900 bg-white">Active</option>
-                <option value="suspended" className="text-slate-900 bg-white">Inactive</option>
+                <option value="active" className="text-slate-900 bg-white">{t('common.active')}</option>
+                <option value="suspended" className="text-slate-900 bg-white">{t('common.inactive')}</option>
               </select>
             </div>
           </div>
@@ -679,14 +755,14 @@ export const UserManagement = () => {
               onClick={() => setIsCreateOpen(false)}
               className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md flex items-center gap-2"
             >
-              <span>{submitting ? 'Creating...' : 'Create User'}</span>
+              <span>{submitting ? t('userManagement.creating') : t('userManagement.createUser')}</span>
             </button>
           </div>
         </form>

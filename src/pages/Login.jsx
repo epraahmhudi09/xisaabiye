@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Lock, User, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import { Lock, User, ArrowRight, Globe } from 'lucide-react';
 
 // Stylized 'X' representing Xisaabiye
 const XLogo = ({ className = "w-10 h-10" }) => (
@@ -20,6 +21,7 @@ const XLogo = ({ className = "w-10 h-10" }) => (
 
 export const Login = () => {
   const { login } = useAuth();
+  const { language, toggleLanguage, t } = useLanguage();
 
   // Inputs are completely empty upon loading
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
@@ -32,7 +34,7 @@ export const Login = () => {
     setError('');
 
     if (!usernameOrEmail.trim() || !password) {
-      setError('Please enter your username/email and password.');
+      setError(t('login.errorRequired'));
       return;
     }
 
@@ -41,7 +43,7 @@ export const Login = () => {
       await login(usernameOrEmail, password);
     } catch (err) {
       console.error(err);
-      setError('Invalid username or password. Please check your credentials.');
+      setError(t('login.errorInvalid'));
     } finally {
       setLoading(false);
     }
@@ -53,13 +55,23 @@ export const Login = () => {
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
+      {/* Language Toggle */}
+      <button
+        onClick={toggleLanguage}
+        title={language === 'en' ? 'Ku beddel Af-Soomaali' : 'Switch to English'}
+        className="absolute top-4 right-4 z-20 px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors flex items-center gap-1.5 text-xs font-extrabold"
+      >
+        <Globe className="w-4 h-4 text-emerald-400" />
+        <span>{language === 'en' ? 'EN' : 'SO'}</span>
+      </button>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center relative z-10">
         <div className="inline-flex p-4 rounded-2xl bg-gradient-to-tr from-blue-700 to-cyan-500 text-white shadow-xl shadow-blue-950/80 mb-4">
           <XLogo className="w-10 h-10" />
         </div>
-        <h2 className="text-3xl font-extrabold text-white tracking-tight">Xisaabiye System</h2>
+        <h2 className="text-3xl font-extrabold text-white tracking-tight">{t('login.title')}</h2>
         <p className="mt-2 text-sm text-slate-400 font-medium">
-          Real-time Inventory, Sales & Loan (Dayn) Management
+          {t('login.subtitle')}
         </p>
       </div>
 
@@ -74,7 +86,7 @@ export const Login = () => {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-                Username or Email Address *
+                {t('login.usernameLabel')}
               </label>
               <div className="relative">
                 <User className="w-5 h-5 text-slate-500 absolute left-3.5 top-3" />
@@ -91,7 +103,7 @@ export const Login = () => {
 
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-                Password *
+                {t('login.passwordLabel')}
               </label>
               <div className="relative">
                 <Lock className="w-5 h-5 text-slate-500 absolute left-3.5 top-3" />
@@ -111,7 +123,7 @@ export const Login = () => {
               disabled={loading}
               className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-950/60 transition-all flex items-center justify-center gap-2"
             >
-              <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
+              <span>{loading ? t('login.authenticating') : t('login.signIn')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

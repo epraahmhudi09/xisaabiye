@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
@@ -119,13 +120,15 @@ const MainLayout = () => {
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <DataProvider>
-          <ProtectedRoute>
-            <MainLayout />
-          </ProtectedRoute>
-        </DataProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <DataProvider>
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          </DataProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

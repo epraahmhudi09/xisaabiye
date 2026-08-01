@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../context/DataContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import { AlertCircle, DollarSign, UserCheck, ShoppingBag } from 'lucide-react';
 
 export const EditSaleModal = ({ isOpen, onClose, sale }) => {
   const { products, customers, updateSale } = useData();
+  const { t } = useLanguage();
 
   const [quantitySold, setQuantitySold] = useState(1);
   const [unitSellingPrice, setUnitSellingPrice] = useState('');
@@ -86,7 +88,7 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
   const estimatedProfit = (parseFloat(unitSellingPrice) || 0 - costPriceAtSale) * (parseInt(quantitySold, 10) || 0);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Sale Transaction" maxWidth="max-w-lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('editSale.title')} maxWidth="max-w-lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-800/80 flex items-center gap-2 text-xs font-semibold text-rose-300">
@@ -101,13 +103,13 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-4.5 h-4.5 text-blue-400" />
               <div>
-                <span className="text-[10px] text-slate-400 block uppercase font-bold">Editing Sale for</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">{t('editSale.editingSaleFor')}</span>
                 <strong className="text-slate-100 text-sm">{product.name}</strong>
               </div>
             </div>
             <div className="text-right text-xs">
-              <span className="text-slate-400 block">Available Pool</span>
-              <strong className="text-slate-200">{maxStockAllowed} units</strong>
+              <span className="text-slate-400 block">{t('editSale.availablePool')}</span>
+              <strong className="text-slate-200">{maxStockAllowed} {t('common.units')}</strong>
             </div>
           </div>
         )}
@@ -116,7 +118,7 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              Quantity Sold *
+              {t('newSale.quantitySold')}
             </label>
             <input
               type="number"
@@ -131,7 +133,7 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
 
           <div>
             <label className="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">
-              Unit Selling Price ($) *
+              {t('newSale.unitSellingPrice')}
             </label>
             <input
               type="number"
@@ -148,11 +150,11 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
         {/* Dynamic Calculation Live Banner */}
         <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold block">Total Sale Amount:</span>
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold block">{t('editSale.totalSaleAmount')}</span>
             <span className="text-xl font-black text-slate-900 dark:text-white">{formatCurrency(totalPrice)}</span>
           </div>
           <div className="text-right">
-            <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold block">Estimated Profit:</span>
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold block">{t('editSale.estimatedProfit')}</span>
             <span className={`text-base font-extrabold ${estimatedProfit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {formatCurrency(estimatedProfit)}
             </span>
@@ -162,7 +164,7 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
         {/* Payment Status Selection: CASH vs LOAN */}
         <div>
           <label className="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-2">
-            Payment Status *
+            {t('newSale.paymentStatus')}
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -175,7 +177,7 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
               }`}
             >
               <DollarSign className="w-4 h-4" />
-              <span>CASH (Paid)</span>
+              <span>{t('newSale.cashPaid')}</span>
             </button>
 
             <button
@@ -188,7 +190,7 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
               }`}
             >
               <UserCheck className="w-4 h-4" />
-              <span>LOAN / DAYN</span>
+              <span>{t('newSale.loanDayn')}</span>
             </button>
           </div>
         </div>
@@ -198,12 +200,12 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
           <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 space-y-3 animate-in fade-in duration-200">
             <div className="flex items-center gap-2 text-xs font-bold text-rose-600 dark:text-rose-400">
               <AlertCircle className="w-4 h-4" />
-              <span>Credit / Dayn Transaction Details</span>
+              <span>{t('newSale.creditDetails')}</span>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Customer Name *
+                {t('newSale.customerName')}
               </label>
               <input
                 type="text"
@@ -228,13 +230,13 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
         {/* Notes */}
         <div>
           <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-            Notes / Reference (Optional)
+            {t('newSale.notesRef')}
           </label>
           <input
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="e.g. Promised settlement date..."
+            placeholder={t('newSale.notesPlaceholder')}
             className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm"
           />
         </div>
@@ -246,7 +248,7 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
             onClick={onClose}
             className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -257,7 +259,7 @@ export const EditSaleModal = ({ isOpen, onClose, sale }) => {
                 : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/60'
             } disabled:opacity-50`}
           >
-            {submitting ? 'Saving Changes...' : 'Save Changes'}
+            {submitting ? t('editSale.savingChanges') : t('editSale.saveChanges')}
           </button>
         </div>
       </form>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../context/DataContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const AddEditProductModal = ({ isOpen, onClose, productToEdit = null }) => {
   const { addProduct, updateProduct } = useData();
+  const { t } = useLanguage();
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('General');
@@ -85,10 +87,10 @@ export const AddEditProductModal = ({ isOpen, onClose, productToEdit = null }) =
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      title={productToEdit ? 'Edit Product Item' : 'Add New Inventory Item'}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={productToEdit ? t('addProduct.titleEdit') : t('addProduct.titleAdd')}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -99,13 +101,13 @@ export const AddEditProductModal = ({ isOpen, onClose, productToEdit = null }) =
 
         <div>
           <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-            Product Name *
+            {t('addProduct.productName')}
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Dhuxul (Charcoal 25kg)"
+            placeholder={t('addProduct.productNamePlaceholder')}
             className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-semibold"
             required
           />
@@ -113,14 +115,14 @@ export const AddEditProductModal = ({ isOpen, onClose, productToEdit = null }) =
 
         <div>
           <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-            Category *
+            {t('addProduct.category')}
           </label>
           <input
             type="text"
             list="categories"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            placeholder="e.g. Dhuxul, Baggage, General"
+            placeholder={t('addProduct.categoryPlaceholder')}
             className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm"
             required
           />
@@ -135,7 +137,7 @@ export const AddEditProductModal = ({ isOpen, onClose, productToEdit = null }) =
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              Base Cost Price ($) *
+              {t('addProduct.baseCostPrice')}
             </label>
             <input
               type="number"
@@ -151,7 +153,7 @@ export const AddEditProductModal = ({ isOpen, onClose, productToEdit = null }) =
 
           <div>
             <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              Default Selling Price ($) *
+              {t('addProduct.defaultSellingPrice')}
             </label>
             <input
               type="number"
@@ -168,7 +170,7 @@ export const AddEditProductModal = ({ isOpen, onClose, productToEdit = null }) =
 
         <div>
           <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-            Initial Stock Quantity *
+            {t('addProduct.initialStock')}
           </label>
           <input
             type="number"
@@ -187,14 +189,14 @@ export const AddEditProductModal = ({ isOpen, onClose, productToEdit = null }) =
             onClick={onClose}
             className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
             disabled={submitting}
             className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md"
           >
-            {submitting ? 'Saving...' : productToEdit ? 'Update Item' : 'Add Item'}
+            {submitting ? t('addProduct.saving') : productToEdit ? t('addProduct.updateItem') : t('addProduct.addItem')}
           </button>
         </div>
       </form>

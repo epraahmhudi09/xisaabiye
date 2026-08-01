@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Modal } from './Modal';
 import { useData } from '../../context/DataContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import { Lock, AlertTriangle, TrendingUp, TrendingDown, DollarSign, Wallet, ShieldCheck } from 'lucide-react';
 
 export const CloseMonthModal = ({ isOpen, onClose }) => {
   const { sales, customers, products, closeMonth, showNotification } = useData();
+  const { t } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
 
   // Compute current period YYYY-MM
@@ -79,9 +81,9 @@ export const CloseMonthModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Xisaab Xir — Close Operational Month" maxWidth="max-w-md">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('closeMonth.title')} maxWidth="max-w-md">
       <div className="space-y-4 text-xs font-semibold text-slate-800 dark:text-slate-200">
-        
+
         {/* Header Accent */}
         <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30 flex-shrink-0">
@@ -89,41 +91,41 @@ export const CloseMonthModal = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Xisaab Xir ({currentMonthLabel})</h4>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Finalize period performance and create a permanent audit snapshot.</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{t('closeMonth.subtitle')}</p>
           </div>
         </div>
 
         {/* Summary Card */}
         <div className="space-y-2 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850">
           <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-850">
-            <span className="text-slate-500">Target Period:</span>
+            <span className="text-slate-500">{t('closeMonth.targetPeriod')}</span>
             <span className="font-bold text-slate-900 dark:text-white">{currentMonthLabel} ({currentMonthYear})</span>
           </div>
 
           <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-850">
-            <span className="text-slate-500">Total Sales Revenue:</span>
+            <span className="text-slate-500">{t('closeMonth.totalSalesRevenue')}</span>
             <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(totalSalesRevenue)}</span>
           </div>
 
           <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-850">
-            <span className="text-slate-500">Gross Profit:</span>
+            <span className="text-slate-500">{t('closeMonth.grossProfit')}</span>
             <span className="font-bold text-blue-500">{formatCurrency(totalGrossProfit)}</span>
           </div>
 
           <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-850">
-            <span className="text-slate-500">Operational Expenses:</span>
+            <span className="text-slate-500">{t('closeMonth.operationalExpenses')}</span>
             <span className="font-bold text-rose-400">-{formatCurrency(totalOperationalExpenses)}</span>
           </div>
 
           <div className="flex items-center justify-between py-1.5 font-extrabold text-sm text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-900 p-2 rounded-lg">
-            <span>Net Profit / Loss:</span>
+            <span>{t('closeMonth.netProfitLoss')}</span>
             <span className={netProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}>
               {formatCurrency(netProfit)}
             </span>
           </div>
 
           <div className="flex items-center justify-between py-1 text-[10px] text-slate-400 pt-2">
-            <span>Active Dayn Credit Carryover:</span>
+            <span>{t('closeMonth.daynCarryover')}</span>
             <span className="font-bold text-amber-400">{formatCurrency(carryoverCustomerDebt)}</span>
           </div>
         </div>
@@ -132,7 +134,7 @@ export const CloseMonthModal = ({ isOpen, onClose }) => {
         <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-800/40 text-amber-300 text-[11px] leading-relaxed flex items-start gap-2.5">
           <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <span>
-            <strong>Attention:</strong> Confirming Xisaab Xir locks this month's financials. Unpaid Dayn credit balances will carry over to the new active period.
+            <strong>{t('closeMonth.attention')}</strong> {t('closeMonth.warningNote')}
           </span>
         </div>
 
@@ -144,9 +146,9 @@ export const CloseMonthModal = ({ isOpen, onClose }) => {
             disabled={submitting}
             className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
-          
+
           <button
             type="button"
             onClick={handleConfirmCloseout}
@@ -154,7 +156,7 @@ export const CloseMonthModal = ({ isOpen, onClose }) => {
             className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold flex items-center gap-2 shadow-lg shadow-amber-950/60 transition-all transform hover:scale-105"
           >
             <Lock className="w-4 h-4" />
-            <span>{submitting ? 'Closing Period...' : 'Confirm Xisaab Xir'}</span>
+            <span>{submitting ? t('closeMonth.closing') : t('closeMonth.confirm')}</span>
           </button>
         </div>
       </div>

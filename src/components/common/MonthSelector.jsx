@@ -1,13 +1,15 @@
 import React from 'react';
 import { useData } from '../../context/DataContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Calendar, Lock, CheckCircle2 } from 'lucide-react';
 
 export const MonthSelector = () => {
   const { monthlyClosings, selectedMonth, setSelectedMonth } = useData();
+  const { t } = useLanguage();
 
   // Helper to format YYYY-MM into a friendly month name e.g. "2026-07" -> "July 2026"
   const formatMonthLabel = (yearMonthStr) => {
-    if (!yearMonthStr || yearMonthStr === 'CURRENT') return 'Current Active Month';
+    if (!yearMonthStr || yearMonthStr === 'CURRENT') return t('monthSelector.currentActive');
     const [year, month] = yearMonthStr.split('-');
     const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -22,14 +24,14 @@ export const MonthSelector = () => {
           className="appearance-none pl-9 pr-8 py-2 bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer"
         >
           <option value="CURRENT" className="bg-slate-900 text-white font-bold">
-            ⚡ Current Active Month
+            ⚡ {t('monthSelector.currentActive')}
           </option>
-          
+
           {monthlyClosings.length > 0 && (
-            <optgroup label="Closed Historical Periods" className="bg-slate-900 text-slate-400 font-semibold">
+            <optgroup label={t('monthSelector.closedPeriods')} className="bg-slate-900 text-slate-400 font-semibold">
               {monthlyClosings.map((closing) => (
                 <option key={closing.monthYear} value={closing.monthYear} className="bg-slate-900 text-slate-200 font-semibold">
-                  🔒 {formatMonthLabel(closing.monthYear)} (CLOSED)
+                  🔒 {formatMonthLabel(closing.monthYear)} {t('monthSelector.closedSuffix')}
                 </option>
               ))}
             </optgroup>

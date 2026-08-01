@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { fetchSuppliers, addExpense } from '../../services/firebaseExpenseService';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Loader2 } from 'lucide-react';
 
 export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotification }) => {
   const { currentUser } = useAuth();
+  const { t } = useLanguage();
   const [type, setType] = useState('operational');
   const [category, setCategory] = useState('General');
   const [supplierId, setSupplierId] = useState('');
@@ -156,9 +158,9 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Log Expense / Supplier Payment" maxWidth="max-w-lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('addExpense.title')} maxWidth="max-w-lg">
       <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-slate-800 dark:text-slate-200">
-        
+
         {error && (
           <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30">
             {error}
@@ -168,7 +170,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
         {/* Transaction Type Select */}
         <div className="space-y-2">
           <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-            Transaction Type
+            {t('addExpense.transactionType')}
           </label>
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -180,7 +182,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
                   : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Operational Expense
+              {t('addExpense.operationalExpense')}
             </button>
             <button
               type="button"
@@ -191,7 +193,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
                   : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Supplier Payment
+              {t('addExpense.supplierPayment')}
             </button>
           </div>
         </div>
@@ -201,7 +203,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-                Supplier Selector
+                {t('addExpense.supplierSelector')}
               </label>
               {!isNewSupplier && (
                 <button
@@ -209,7 +211,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
                   onClick={() => { setSupplierId('__NEW__'); setIsNewSupplier(true); }}
                   className="text-[11px] font-bold text-blue-600 hover:text-blue-500 dark:text-blue-400 underline"
                 >
-                  + Add New Supplier
+                  {t('addExpense.addNewSupplier')}
                 </button>
               )}
             </div>
@@ -217,7 +219,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
             {loadingSuppliers ? (
               <div className="flex items-center gap-2 p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-600 dark:text-slate-300">
                 <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                <span>Fetching suppliers...</span>
+                <span>{t('addExpense.fetchingSuppliers')}</span>
               </div>
             ) : (
               <select
@@ -231,7 +233,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
                   </option>
                 ))}
                 <option value="__NEW__" className="bg-white text-blue-600 dark:bg-slate-900 dark:text-blue-400 font-bold">
-                  + Add New Supplier (Enter Name Directly)
+                  {t('addExpense.newSupplierAdd')}
                 </option>
               </select>
             )}
@@ -239,13 +241,13 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
             {(isNewSupplier || supplierId === '__NEW__') && (
               <div className="mt-2 space-y-1">
                 <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-                  New Supplier Name
+                  {t('addExpense.newSupplierName')}
                 </label>
                 <input
                   type="text"
                   value={newSupplierName}
                   onChange={(e) => setNewSupplierName(e.target.value)}
-                  placeholder="e.g. Somali Energy Corp, Local Vendor"
+                  placeholder={t('addExpense.newSupplierPlaceholder')}
                   className="w-full p-2.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 font-medium"
                   required
                 />
@@ -259,7 +261,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-                Expense Category
+                {t('addExpense.expenseCategory')}
               </label>
               <select
                 value={category}
@@ -275,13 +277,13 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
             {category === 'Custom' && (
               <div className="space-y-1.5">
                 <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-                  Custom Category Name
+                  {t('addExpense.customCategoryName')}
                 </label>
                 <input
                   type="text"
                   value={customCategory}
                   onChange={(e) => setCustomCategory(e.target.value)}
-                  placeholder="e.g. Electricity, Repairs"
+                  placeholder={t('addExpense.customCategoryPlaceholder')}
                   className="w-full p-2.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 font-medium"
                   required
                 />
@@ -294,7 +296,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-              Amount ($ USD)
+              {t('addExpense.amountUsd')}
             </label>
             <input
               type="number"
@@ -309,7 +311,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
 
           <div className="space-y-1.5">
             <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-              Transaction Date
+              {t('addExpense.transactionDate')}
             </label>
             <input
               type="date"
@@ -325,7 +327,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-              Payment Method
+              {t('addExpense.paymentMethod')}
             </label>
             <select
               value={paymentMethod}
@@ -342,13 +344,13 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
 
           <div className="space-y-1.5">
             <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-              Receipt No / Ref ID (Optional)
+              {t('addExpense.receiptNoOptional')}
             </label>
             <input
               type="text"
               value={receiptNo}
               onChange={(e) => setReceiptNo(e.target.value)}
-              placeholder="e.g. REC-1029"
+              placeholder={t('addExpense.receiptNoPlaceholder')}
               className="w-full p-2.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 font-medium"
             />
           </div>
@@ -357,12 +359,12 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
         {/* Notes */}
         <div className="space-y-1.5">
           <label className="block text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
-            Notes / Description
+            {t('addExpense.notesDescription')}
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Add some details about this transaction..."
+            placeholder={t('addExpense.notesPlaceholder')}
             rows="3"
             className="w-full p-2.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 font-medium"
           ></textarea>
@@ -375,7 +377,7 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
             onClick={onClose}
             className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl font-bold transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -385,10 +387,10 @@ export const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded, showNotificat
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Saving...</span>
+                <span>{t('addExpense.saving')}</span>
               </>
             ) : (
-              <span>Save Transaction</span>
+              <span>{t('addExpense.saveTransaction')}</span>
             )}
           </button>
         </div>

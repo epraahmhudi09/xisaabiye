@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import { AlertCircle, ShoppingBag, UserCheck, DollarSign } from 'lucide-react';
 
 export const NewSaleModal = ({ isOpen, onClose }) => {
   const { products, customers, addSale } = useData();
   const { isManager } = useAuth();
+  const { t } = useLanguage();
 
   if (isManager) return null;
 
@@ -113,7 +115,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
   const estimatedProfit = selectedProduct ? (parseFloat(unitSellingPrice) || 0 - costPrice) * (parseInt(quantitySold, 10) || 0) : 0;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Record New Sale (POS)" maxWidth="max-w-lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('newSale.title')} maxWidth="max-w-lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-800/80 flex items-center gap-2 text-xs font-semibold text-rose-300">
@@ -125,7 +127,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
         {/* Product Selection */}
         <div>
           <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-            Select Product *
+            {t('newSale.selectProduct')}
           </label>
           <select
             value={productId}
@@ -134,15 +136,15 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
           >
             {products.map(p => (
               <option key={p.id} value={p.id} className="bg-slate-900 text-white">
-                {p.name} — (In Stock: {p.stockQuantity}) — Base Cost: ${p.costPrice.toFixed(2)}
+                {p.name} — ({t('newSale.inStock')}: {p.stockQuantity}) — {t('newSale.baseCost')}: ${p.costPrice.toFixed(2)}
               </option>
             ))}
           </select>
           {selectedProduct && (
             <div className="flex items-center justify-between text-xs text-slate-400 mt-1.5 px-1">
-              <span>Category: <strong className="text-slate-200">{selectedProduct.category}</strong></span>
+              <span>{t('newSale.categoryLabel')} <strong className="text-slate-200">{selectedProduct.category}</strong></span>
               <span className={selectedProduct.stockQuantity < 10 ? 'text-amber-400 font-bold' : 'text-emerald-400'}>
-                Stock Available: {selectedProduct.stockQuantity}
+                {t('newSale.stockAvailable')} {selectedProduct.stockQuantity}
               </span>
             </div>
           )}
@@ -152,7 +154,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              Quantity Sold *
+              {t('newSale.quantitySold')}
             </label>
             <input
               type="number"
@@ -167,7 +169,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
 
           <div>
             <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              Unit Selling Price ($) *
+              {t('newSale.unitSellingPrice')}
             </label>
             <input
               type="number"
@@ -185,11 +187,11 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
         {/* Dynamic Calculation Live Banner */}
         <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-400 block">Total Sale Amount:</span>
+            <span className="text-xs text-slate-400 block">{t('newSale.totalSaleAmount')}</span>
             <span className="text-xl font-black text-white">{formatCurrency(totalPrice)}</span>
           </div>
           <div className="text-right">
-            <span className="text-xs text-slate-400 block">Estimated Profit:</span>
+            <span className="text-xs text-slate-400 block">{t('newSale.estimatedProfit')}</span>
             <span className={`text-base font-extrabold ${estimatedProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
               {formatCurrency(estimatedProfit)}
             </span>
@@ -199,7 +201,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
         {/* Payment Status Selection: CASH vs LOAN */}
         <div>
           <label className="block text-xs font-semibold uppercase text-slate-400 mb-2">
-            Payment Status *
+            {t('newSale.paymentStatus')}
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -212,7 +214,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
               }`}
             >
               <DollarSign className="w-4 h-4" />
-              <span>CASH (Paid)</span>
+              <span>{t('newSale.cashPaid')}</span>
             </button>
 
             <button
@@ -225,7 +227,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
               }`}
             >
               <UserCheck className="w-4 h-4" />
-              <span>LOAN / DAYN</span>
+              <span>{t('newSale.loanDayn')}</span>
             </button>
           </div>
         </div>
@@ -235,12 +237,12 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
           <div className="p-3.5 rounded-xl bg-rose-950/30 border border-rose-800/50 space-y-3 animate-in fade-in duration-200">
             <div className="flex items-center gap-2 text-xs font-bold text-rose-400">
               <AlertCircle className="w-4 h-4" />
-              <span>Credit / Dayn Transaction Details</span>
+              <span>{t('newSale.creditDetails')}</span>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Customer Name *
+                {t('newSale.customerName')}
               </label>
               <input
                 type="text"
@@ -262,7 +264,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Customer Phone (Optional)
+                {t('newSale.customerPhone')}
               </label>
               <input
                 type="text"
@@ -278,13 +280,13 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
         {/* Notes */}
         <div>
           <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-            Notes / Reference (Optional)
+            {t('newSale.notesRef')}
           </label>
           <input
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="e.g. Promised settlement date..."
+            placeholder={t('newSale.notesPlaceholder')}
             className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm"
           />
         </div>
@@ -296,7 +298,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -307,7 +309,7 @@ export const NewSaleModal = ({ isOpen, onClose }) => {
                 : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/60'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            {submitting ? 'Recording...' : paymentStatus === 'loan' ? 'Confirm Dayn Sale' : 'Complete Cash Sale'}
+            {submitting ? t('newSale.recording') : paymentStatus === 'loan' ? t('newSale.confirmDaynSale') : t('newSale.completeCashSale')}
           </button>
         </div>
       </form>

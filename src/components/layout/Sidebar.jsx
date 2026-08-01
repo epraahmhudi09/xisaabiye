@@ -16,6 +16,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 // Stylized 'X' representing Xisaabiye
 const XLogo = ({ className = "w-6 h-6" }) => (
@@ -37,30 +38,31 @@ export const Sidebar = ({ activeTab, setActiveTab, onOpenNewSale, mobileMenuOpen
   const { currentUser, logout, isAdmin, isManager } = useAuth();
   const { customers } = useData();
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
 
   const totalOutstandingLoans = customers.reduce((acc, c) => acc + (c.totalDebt || 0), 0);
 
   // Base navigation available to all roles
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'inventory', label: 'Stock / Inventory', icon: Package },
-    { id: 'sales', label: 'Sales & Records', icon: ShoppingCart },
-    { 
-      id: 'customers', 
-      label: 'Loans (Dayn)', 
+    { id: 'dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard },
+    { id: 'inventory', label: t('sidebar.inventory'), icon: Package },
+    { id: 'sales', label: t('sidebar.sales'), icon: ShoppingCart },
+    {
+      id: 'customers',
+      label: t('sidebar.loans'),
       icon: Users,
       badge: totalOutstandingLoans > 0 ? `$${totalOutstandingLoans.toFixed(0)}` : null,
       badgeColor: 'rose'
     },
-    { id: 'reports', label: 'Profit & Reports', icon: FileSpreadsheet },
-    { id: 'expenses', label: 'Expenses & Payments', icon: Receipt }
+    { id: 'reports', label: t('sidebar.reports'), icon: FileSpreadsheet },
+    { id: 'expenses', label: t('sidebar.expenses'), icon: Receipt }
   ];
 
   // Admin exclusive navigation tabs
   if (isAdmin) {
     navItems.push(
-      { id: 'userManagement', label: 'User Management', icon: UserCheck },
-      { id: 'activityLogs', label: 'Activity Logs', icon: Activity }
+      { id: 'userManagement', label: t('sidebar.userManagement'), icon: UserCheck },
+      { id: 'activityLogs', label: t('sidebar.activityLogs'), icon: Activity }
     );
   }
 
@@ -86,7 +88,7 @@ export const Sidebar = ({ activeTab, setActiveTab, onOpenNewSale, mobileMenuOpen
             </div>
             <div>
               <h1 className="font-extrabold text-lg text-slate-900 dark:text-white tracking-wide leading-tight">Xisaabiye</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Stock & Dayn System</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{t('sidebar.tagline')}</p>
             </div>
           </div>
         </div>
@@ -102,7 +104,7 @@ export const Sidebar = ({ activeTab, setActiveTab, onOpenNewSale, mobileMenuOpen
               className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-950/60 hover:shadow-blue-600/30 transition-all duration-200"
             >
               <ShoppingCart className="w-4 h-4" />
-              <span>+ New Sale (POS)</span>
+              <span>{t('sidebar.newSale')}</span>
             </button>
           </div>
         )}
@@ -153,16 +155,16 @@ export const Sidebar = ({ activeTab, setActiveTab, onOpenNewSale, mobileMenuOpen
         >
           <div className="flex items-center gap-2">
             {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-400" />}
-            <span>{theme === 'dark' ? 'Dark Theme' : 'Light Theme'}</span>
+            <span>{theme === 'dark' ? t('sidebar.darkTheme') : t('sidebar.lightTheme')}</span>
           </div>
-          <span className="text-[10px] text-slate-500 uppercase font-bold">Toggle</span>
+          <span className="text-[10px] text-slate-500 uppercase font-bold">{t('sidebar.toggle')}</span>
         </button>
 
         {/* User Role Card */}
         <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
           <div className="overflow-hidden pr-2">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-slate-500 dark:text-slate-400">Logged in:</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">{t('sidebar.loggedIn')}</span>
               <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded border ${
                 isAdmin 
                   ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
@@ -177,7 +179,7 @@ export const Sidebar = ({ activeTab, setActiveTab, onOpenNewSale, mobileMenuOpen
           </div>
           <button
             onClick={logout}
-            title="Log Out"
+            title={t('sidebar.logOut')}
             className="p-2 text-slate-500 dark:text-slate-400 hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
           >
             <LogOut className="w-5 h-5" />

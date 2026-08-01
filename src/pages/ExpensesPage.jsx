@@ -179,8 +179,9 @@ export const ExpensesPage = () => {
     .filter(e => e.type === 'supplier_payment')
     .reduce((acc, e) => acc + (e.amount || 0), 0);
 
-  // Outstanding Debt (Net sum of all supplier balances — always current, not period-scoped)
-  const outstandingDebtVal = suppliers.reduce((acc, s) => acc + (s.currentBalance || 0), 0);
+  // Outstanding Debt (Net sum of all supplier balances — always current, not period-scoped).
+  // Clamped to 0: prevents negative display caused by over-reversed balances.
+  const outstandingDebtVal = Math.max(0, suppliers.reduce((acc, s) => acc + (s.currentBalance || 0), 0));
 
   return (
     <div className="space-y-6 font-sans">

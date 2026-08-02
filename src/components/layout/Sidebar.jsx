@@ -1,17 +1,18 @@
-import React from 'react';
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  FileSpreadsheet, 
-  LogOut, 
+import React, { useEffect, useState } from 'react';
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  FileSpreadsheet,
+  LogOut,
   UserCheck,
   Activity,
   ShieldCheck,
   Sun,
   Moon,
-  Receipt
+  Receipt,
+  Download
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
@@ -39,6 +40,45 @@ export const Sidebar = ({ activeTab, setActiveTab, onOpenNewSale, mobileMenuOpen
   const { customers } = useData();
   const { theme, toggleTheme } = useTheme();
   const { t } = useLanguage();
+
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+
+  useEffect(() => {
+    setIsStandalone(
+      window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+    );
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    const handleAppInstalled = () => {
+      setInstallPrompt(null);
+      setIsStandalone(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      setInstallPrompt(null);
+    } else if (isIOS) {
+      setShowIOSInstructions((prev) => !prev);
+    }
+  };
+
+  const canShowInstallButton = !isStandalone && (installPrompt || isIOS);
 
   const totalOutstandingLoans = customers.reduce((acc, c) => acc + (c.totalDebt || 0), 0);
 
@@ -148,6 +188,24 @@ export const Sidebar = ({ activeTab, setActiveTab, onOpenNewSale, mobileMenuOpen
 
       {/* User & Theme Footer */}
       <div className="p-4 border-t border-slate-200 dark:border-slate-800/80 space-y-3">
+        {/* Install App Button */}
+        {canShowInstallButton && (
+          <div>
+            <button
+              onClick={handleInstallClick}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span>{t('sidebar.installApp')}</span>
+            </button>
+            {showIOSInstructions && (
+              <p className="mt-2 text-[11px] leading-snug text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-lg p-2">
+                {t('sidebar.installAppIOS')}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}

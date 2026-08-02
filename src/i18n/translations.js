@@ -61,6 +61,9 @@ export const translations = {
       toggle: 'Toggle',
       loggedIn: 'Logged in:',
       logOut: 'Log Out',
+      installApp: 'Install App',
+      installAppDesc: 'Add to Home Screen',
+      installAppIOS: 'Tap the Share icon, then "Add to Home Screen".',
     },
     header: {
       liveSync: 'Live Firestore Sync',
@@ -532,6 +535,9 @@ export const translations = {
       toggle: 'Bedel',
       loggedIn: 'Ku galay:',
       logOut: 'Ka bax',
+      installApp: 'Soo Dejiso App-ka',
+      installAppDesc: 'Ku dar Shaashadda Guriga',
+      installAppIOS: 'Riix sumadda Share, ka dibna dooro "Add to Home Screen".',
     },
     header: {
       liveSync: 'Xiriir Toos ah (Firestore)',
